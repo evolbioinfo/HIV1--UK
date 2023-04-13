@@ -1,0 +1,172 @@
+import os
+
+# To run locally:
+# snakemake --snakefile Snakefile_aln --keep-going --cores 4 --use-singularity --singularity-prefix ~/.singularity --singularity-args "--home ~"
+
+# To visualise the pipeline:
+# snakemake --snakefile Snakefile_aln --dag | dot -Tsvg > pipeline_aln.svg
+
+localrules: all
+
+folder = os.path.abspath(config.get("folder", '..'))
+data_dir = os.path.join(folder, 'data')
+subtypes = ['B', 'C']
+
+rule all:
+    input:
+        expand(os.path.join(data_dir, 'aln', '{subtype}', 'aln.nodrm.fa.xz'), subtype=subtypes),
+        expand(os.path.join(data_dir, 'metadata', '{subtype}', 'metadata.drm.tab'), subtype=subtypes),
+        expand(os.path.join(data_dir, 'aln', '{subtype}', 'outgroup.tab'), subtype=subtypes)
+
+
+rule aln_rm_drms:
+    '''
+    Remove all-gappy positions from the alignment.
+    '''
+    input:
+        aln = os.path.join(data_dir, 'aln', '{subtype}', 'aln.first.fa.xz'),
+        data = os.path.join(data_dir, 'metadata', '{subtype}', 'metadata.drm.tab')
+    output:
+        aln = os.path.join(data_dir, 'aln', '{subtype}', 'aln.nodrm.fa.xz'),
+    params:
+        mem = 1000,
+        name = 'rm_drm',
+        qos = 'fast'
+    threads: 1
+    singularity: "docker://evolbioinfo/python-evol:v3.6"
+    shell:
+        """
+        python3 {folder}/py/clean_aln.py --input_data {input.data} --output_fa {output.aln} --input_fa {input.aln} \
+        --PR_start_pos 123 --RT_start_pos 222
+        """
+
+rule get_seq_ids_first:
+    '''
+    Extract sequence ids of interest (first sequence for each patient).
+    '''
+    input:
+        tab = os.path.join(data_dir, 'metadata', 'metadata.uk.tab'),
+    output:
+        tab = os.path.join(data_dir, 'aln', '{subtype}', 'ids.first.tab'),
+    params:
+        mem = 500,
+        name = 'ids_{subtype}',
+        qos = 'fast'
+    threads: 1
+    singularity: "docker://evolbioinfo/python-evol:v3.6"
+    shell:
+        """
+        python3 {folder}/py/get_seq_ids.py --input_data {input.tab} --output_data {output.tab} \
+        --subtype {wildcards.subtype} --first_sample
+        """
+
+rule get_seq_ids_all:
+    '''
+    Extract sequence ids of interest.
+    '''
+    input:
+        tab = os.path.join(data_dir, 'metadata', 'metadata.uk.tab'),
+    output:
+        tab = os.path.join(data_dir, 'aln', '{subtype}', 'ids.all.tab'),
+    params:
+        mem = 500,
+        name = 'ids_{subtype}',
+        qos = 'fast'
+    threads: 1
+    singularity: "docker://evolbioinfo/python-evol:v3.6"
+    shell:
+        """
+        python3 {folder}/py/get_seq_ids.py --input_data {input.tab} --output_data {output.tab} \
+        --subtype {wildcards.subtype}
+        """
+
+rule get_outgroup:
+    '''
+    Extract outgroup ids of interest.
+    '''
+    input:
+        tab = os.path.join(data_dir, 'metadata', 'metadata.uk.tab'),
+    output:
+        og = os.path.join(data_dir, 'aln', '{subtype}', 'outgroup.tab')
+    params:
+        mem = 500,
+        name = 'og_{subtype}',
+        qos = 'fast'
+    threads: 1
+    singularity: "docker://evolbioinfo/python-evol:v3.6"
+    shell:
+        """
+        python3 {folder}/py/get_seq_ids.py --input_data {input.tab} \
+        --subtype {wildcards.subtype} --outgroup {output.og}
+        """
+
+rule filter_fa_id:
+    '''
+    Filter a multifasta by id.
+    '''
+    input:
+        aln = os.path.join(data_dir, 'aln', 'aln.uk.fa.xz'),
+        ig = os.path.join(data_dir, 'aln', '{subtype}', 'ids.{type}.tab'),
+        og = os.path.join(data_dir, 'aln', '{subtype}', 'outgroup.tab')
+    output:
+        aln = temp(os.path.join(data_dir, 'aln', '{subtype}', 'aln.{type}.fa'))
+    params:
+        mem = 1000,
+        name = 'filter_{subtype}',
+        qos = 'fast',
+    threads: 1
+    singularity: "docker://evolbioinfo/goalign:v0.3.6"
+    shell:
+        """
+        cat {input.ig} <(echo) {input.og} > {output.aln}.ids
+
+        goalign subset -i {input.aln} -f {output.aln}.ids -o {output.aln}
+
+        rm -rf {output.aln}.ids
+        """
+
+rule xzip:
+    '''
+    Xzips the alignments.
+    '''
+    input:
+        aln = os.path.join(data_dir, 'aln', '{subtype}', '{aln}.fa'),
+    output:
+        aln = os.path.join(data_dir, 'aln', '{subtype}', '{aln}.fa.xz'),
+    params:
+        mem = 120000,
+        name = 'xz_{aln}',
+        qos = 'fast',
+        partition = 'common,dedicated,bioevo'
+    threads: 1
+    shell:
+        """
+        xz -zc {input.aln} > {output.aln}
+        """
+
+rule drm_data:
+    '''
+    Extracts information about DRMs from Stanford DB (with sierra) and reformats it into a table.
+    '''
+    input:
+        fasta = os.path.join(data_dir, 'aln', '{subtype}', 'aln.all.fa.xz'),
+    output:
+        tab = os.path.join(data_dir, 'metadata', '{subtype}', 'metadata.drm.tab')
+    params:
+        mem = 2000,
+        name = 'drms_{subtype}',
+        qos = 'fast'
+    threads: 1
+    singularity: "docker://evolbioinfo/sdrmhunter:v0.2.1.6"
+    shell:
+        """
+        export LC_ALL=C.UTF-8
+        export LANG=C.UTF-8
+        if [ -e {output.tab}.backup ]
+        then
+            cp {output.tab}.backup {output.tab}
+        else
+            sdrmhunter --fasta {input.fasta} --output {output.tab}
+            cp {output.tab} {output.tab}.backup
+        fi
+        """

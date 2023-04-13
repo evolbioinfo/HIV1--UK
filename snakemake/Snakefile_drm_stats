@@ -1,0 +1,157 @@
+import os
+
+# To run locally:
+# source activate snakemake
+# snakemake --snakefile Snakefile_drm_stats --keep-going --cores 4 --use-singularity --singularity-prefix ~/.singularity --singularity-args "--home ~"
+
+# To visualise the pipeline:
+# module load graphviz
+# snakemake --snakefile Snakefile_drm_stats --dag | dot -Tsvg > pipeline_drm_stats.svg
+
+localrules: all
+
+folder = os.path.abspath(config.get("folder", '..'))
+data_dir = os.path.join(folder, 'data')
+
+dating = ['lsd2']
+trees = ['raxml']
+
+subtypes = ['B', 'C']
+
+DRMs_C = open(os.path.join(data_dir, 'metadata', 'C', 'common_drms.by_position.txt')).read().split(' ')
+DRMs_B = open(os.path.join(data_dir, 'metadata', 'B', 'common_drms.by_position.txt')).read().split(' ')
+
+
+rule all:
+    input:
+        stats = expand(os.path.join(data_dir, 'metadata', '{subtype}', '{tree}.{dating}_drm_stats.tab'), dating=dating, tree=trees, subtype=subtypes),
+        supmat = os.path.join(data_dir, 'metadata', 'Supp_DRM_Tables.tex'),
+        stats_losses = os.path.join(data_dir, 'metadata', 'Table4.tab'),
+
+
+rule stats:
+    '''
+    DRM stats.
+    '''
+    input:
+        drms = os.path.join(data_dir, 'metadata', '{subtype}', 'common_drms.by_position.txt'),
+        metadata = os.path.join(data_dir, 'metadata', 'metadata.uk.tab'),
+        tree = os.path.join(data_dir, 'timetrees', '{subtype}', '{tree}.nwk'),
+        polymorphic_data = os.path.join(data_dir, 'metadata', 'drm_types.tab'),
+        arv_data = os.path.join(data_dir, 'metadata', 'arv_metadata.tab'),
+    output:
+        metadata = os.path.join(data_dir, 'metadata', '{subtype}', '{tree}_drm_stats.tab')
+    threads: 2
+    singularity: "docker://evolbioinfo/pastml:v1.9.40"
+    params:
+        mem = 4000,
+        name = 'stats_B',
+        qos = 'fast',
+        mp = os.path.join(data_dir, 'acr', '{subtype}', 'pastml', '{}.raxml.lsd2', 'marginal_probabilities.character_{}.model_F81.tab'),
+    shell:
+        """
+        python3 {folder}/py/drm_stats.py --drms {input.drms} --treatment_status {input.metadata} \
+        --arv_tab {input.arv_data} --nwk {input.tree} --output_tab {output} --poly {input.polymorphic_data} \
+        --mp_pattern {params.mp}
+        """
+
+
+rule stats_drm:
+    '''
+    DRM stats by DRM.
+    '''
+    input:
+        metadata = os.path.join(data_dir, 'metadata', 'metadata.uk.tab'),
+        tree = os.path.join(data_dir, 'timetrees', '{subtype}', '{tree}.nwk'),
+        mp = os.path.join(data_dir, 'acr', '{subtype}', 'pastml', '{drm}.raxml.lsd2', 'marginal_probabilities.character_{drm}.model_F81.tab'),
+    output:
+        metadata = os.path.join(data_dir, 'metadata', '{subtype}', '{tree}_drm_stats_{drm}.tex')
+    threads: 2
+    singularity: "docker://evolbioinfo/pastml:v1.9.40"
+    params:
+        mem = 4000,
+        name = 'stats',
+        qos = 'fast',
+    shell:
+        """
+        python3 {folder}/py/drm_stats_drm.py --drm {wildcards.drm} --treatment_status {input.metadata} \
+        --nwk {input.tree} --output_tab {output} --mp {input.mp} --years 1997 2002 2007 2012 2017 \
+        --subtype {wildcards.subtype}
+        """
+
+
+rule aggregate_stats_drm:
+    '''
+    A latex file with all the DRM-stats-by-DRM tables.
+    '''
+    input:
+        metadata_B = expand(os.path.join(data_dir, 'metadata', 'B', 'raxml.lsd2_drm_stats_{drm}.tex'), drm=DRMs_B),
+        metadata_C = expand(os.path.join(data_dir, 'metadata', 'B', 'raxml.lsd2_drm_stats_{drm}.tex'), drm=DRMs_C),
+    output:
+        tex = os.path.join(data_dir, 'metadata', 'Supp_DRM_Tables.tex')
+    threads: 2
+    singularity: "docker://evolbioinfo/pastml:v1.9.40"
+    params:
+        mem = 4000,
+        name = 'supmat',
+        qos = 'fast',
+        metadata = os.path.join(data_dir, 'metadata', '{}','raxml.lsd2_drm_stats_{}.tex')
+    shell:
+        """
+        python3 {folder}/py/sup_mat_generator.py --B {DRMs_B} --C {DRMs_C} \
+        --tex {output.tex} --pattern {params.metadata}
+        """
+
+
+rule stats_loss:
+    '''
+    DRM stats on times of DRM losses.
+    '''
+    input:
+        drms = os.path.join(data_dir, 'metadata', '{subtype}', 'common_drms.by_position.txt'),
+        metadata = os.path.join(data_dir, 'metadata', 'metadata.uk.tab'),
+        tree = os.path.join(data_dir, 'timetrees', '{subtype}', '{tree}.nwk'),
+        polymorphic_data = os.path.join(data_dir, 'metadata', 'drm_types.tab'),
+        arv_data = os.path.join(data_dir, 'metadata', 'arv_metadata.tab'),
+        drm_data = os.path.join(data_dir, 'metadata', '{subtype}', 'metadata.drm.tab'),
+        Castro = os.path.join(data_dir, 'input', 'Castro.tab'),
+    output:
+        metadata = os.path.join(data_dir, 'metadata', '{subtype}', '{tree}_drm_stats_losses.tab')
+    threads: 2
+    singularity: "docker://evolbioinfo/pastml:v1.9.40"
+    params:
+        mem = 4000,
+        name = 'stats_loss',
+        qos = 'fast',
+        mp = os.path.join(data_dir, 'acr', '{subtype}', 'pastml', '{}.raxml.lsd2', 'marginal_probabilities.character_{}.model_F81.tab'),
+    shell:
+        """
+        python3 {folder}/py/drm_reversion_stats.py --drms {input.drms} --poly {input.polymorphic_data} --treatment_data {input.metadata} \
+        --arv_data {input.arv_data} --nwk {input.tree} --output_tab {output} \
+        --drm_data {input.drm_data} \
+        --Castro_data {input.Castro}\
+        --mp_pattern {params.mp} --subtype {wildcards.subtype}
+        """
+
+
+rule loss_tables:
+    '''
+    Produces the main and the supplementary tables on DRM losses.
+    '''
+    input:
+        metadata_B = os.path.join(data_dir, 'metadata', 'B', 'raxml.lsd2_drm_stats_losses.tab'),
+        metadata_C = os.path.join(data_dir, 'metadata', 'C', 'raxml.lsd2_drm_stats_losses.tab')
+    output:
+        metadata = os.path.join(data_dir, 'metadata', 'Table4.tab'),
+        sup_metadata = os.path.join(data_dir, 'metadata', 'TableA3.tab')
+    threads: 2
+    singularity: "docker://evolbioinfo/pastml:v1.9.40"
+    params:
+        mem = 4000,
+        name = 'loss_table',
+        qos = 'fast',
+    shell:
+        """
+        python3 {folder}/py/split_loss_tables.py --B {input.metadata_B} --C {input.metadata_C} --tab {output.metadata} \
+        --sup_tab {output.sup_metadata}
+        """

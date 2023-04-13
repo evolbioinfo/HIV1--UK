@@ -1,0 +1,56 @@
+
+LEAST-SQUARE METHODS TO ESTIMATE RATES AND DATES - v.2.3 
+
+
+Input files:
+  i                                               Input tree file : /home/azhukova/projects/hiv/data/trees/C/rooted_raxml.nwk
+  d                                               Input date file : /home/azhukova/projects/hiv/data/metadata/lsd2.dates
+  p                                                Partition file : No
+  g                                               Given outgroups : No
+Output file:
+  o                                                  Output file  : /home/azhukova/projects/hiv/data/timetrees/C/raxml.lsd2.wd
+Parameters:
+  a                                                     Root date : No
+  z                                                     Tips date : No
+  c                                              With constraints : Yes
+  t                                      Lower bound for the rate : 1e-10
+  v                                                With variances : Yes, use variances based on input branch lengths
+  b                              Adjusted parameter for variances : To estimate
+  r                                             Estimate the root : No
+  w                                       Given substitution rate : No
+  n                                             Multiple data set : No
+  f                                  Compute confidence intervals : Yes, sampling 1000 times
+  q                  Standard deviation of lognormal relaxed clock: 0.2 (for computing confidence intervals)
+  s                                               Sequence length : 3102
+  e                                          Exclude outlier tips : Yes, detect and exclude outliers from the analysis
+  m                   Number of sampling nodes to detect outliers : 10
+  e                       The Zscore threshold to detect outliers : 3
+  u                Min internal branch length of time scaled tree : To estimate
+  R     Rounding number for min branch length of time scaled tree : 8760
+  U                Min external branch length of time scaled tree : To estimate
+  l                        Collapsed internal branch length limit : 0.000161186
+  D                                            Output date format : Based on input date format
+  E  Estimate rates for external and internal branches separately : No
+
+  h to print Help 
+  y to accept or type a letter to change an option (x = Exit) 
+Tree 1 
+Parameter to adjust variances was set to 0.014146 (settable via option -b)
+Minimum branch length of time scaled tree (settable via option -u and -U): 0.000664862,
+ rounded to 0.000684932 (6/8760) using factor 8760 (settable via option -R)
+
+*WARNINGS:
+- 11.611% internal branches were collapsed.
+
+*RESULTS:
+- The input dates associated with the following 330 nodes are considered as
+ outliers, so those nodes were removed from the analysis:
+ 23338 85683 47004 63151 53180 11341 7763 57344 51061 71127 58626 85777 85210 25189 77958 87208 75555 28236 35896 15411 25676 61125 70274 23214 84108 39309 19110 47767 22673 2634 27755 44140 75851 31420 69828 13384 19395 55676 41054 56881 50793 56262 21183 44388 1676 9516 73997 12822 231 58681 2601 27773 4436 53366 83767 58473 21281 2281 40995 27853 13806 53046 86508 86674 39910 48081 82637 6155 85375 77301 76512 72080 58102 37717 65136 14143 25423 64442 48333 13225 63840 37659 87314 21216 5507 6498 43411 67467 21531 15193 23328 58106 82649 87240 6191 48881 72106 76270 12410 599 72414 41830 31825 48469 86144 12327 45741 82205 37278 3672 11159 10152 27942 78522 40232 87820 15019 85417 40212 82839 86486 87961 9114 22905 74631 69399 9338 30845 85173 22368 37525 80571 21088 63283 4893 39116 66990 57932 37027 13450 60761 20613 17478 26511 21187 15170 34979 68076 4425 23275 83708 58706 72345 48261 66043 52726 8524 30969 87098 84275 42705 29532 73530 72703 11608 31173 73460 2160 51127 83254 43831 2501 68820 3640 74826 83339 40491 43773 8960 16838 17366 13921 80372 75170 36109 12879 75716 29481 9240 38858 34584 65375 21161 38055 5502 40115 87322 74779 58833 49189 15621 6788 44162 59978 29798 32775 4910 30883 30981 77765 85445 87702 6173 77793 21188 63457 77109 38307 8141 59480 73115 62785 30480 74427 60639 61353 64690 38644 46917 67527 42636 41553 12184 78302 14435 2563 52863 63056 52792 61364 4911 5009 45530 85075 58462 51197 38409 76125 76625 73484 41465 51281 69987 27924 46513 10290 61910 67950 40152 22375 87968 20534 66529 82952 84803 22835 68101 9895 48535 48616 69136 6899 33762 25233 53971 14091 62881 84092 17397 57239 86373 51085 26082 32942 36115 7380 84378 81226 75802 60686 79149 72626 5982 22489 61555 27731 20205 29933 21136 86005 42103 33591 88005 46663 43268 85507 86484 35617 3021 72804 73688 49294 71505 45618 53328 8695 26447 31172 41110 80563 8408 9428 36882 2198 14433 45614 26154 19422 78931 18673
+- Dating results:
+ rate 0.00137341, tMRCA 1944.17 , objective function 68.6614
+- Results with confidence intervals:
+ rate 0.00137341 [0.00133362; 0.001384], tMRCA 1944.17 [1929.92; 1949.71], objective function 68.6614
+
+*********************************************************
+
+TOTAL ELAPSED TIME: 6340.21 seconds

@@ -1,0 +1,217 @@
+import os
+
+# To run locally:
+# source activate snakemake
+# snakemake --snakefile Snakefile_drm --keep-going --cores 4 --use-singularity --singularity-prefix ~/.singularity --singularity-args "--home ~"
+
+
+# To visualise the pipeline:
+# module load graphviz
+# snakemake --snakefile Snakefile_drm --dag | dot -Tsvg > pipeline_drm.svg
+
+localrules: all
+
+folder = os.path.abspath(config.get("folder", '..'))
+data_dir = os.path.join(folder, 'data')
+
+dating = ['lsd2']
+trees = ['raxml']
+
+DRMs_C = open(os.path.join(data_dir, 'metadata', 'C', 'common_drms.by_position.txt')).read().split(' ')
+DRMs_B = open(os.path.join(data_dir, 'metadata', 'B', 'common_drms.by_position.txt')).read().split(' ')
+
+subtypes = ['B', 'C']
+
+ACR_method = "MAP"
+
+ruleorder:  pastml_RT_V179DE > pastml_drm
+
+
+rule all:
+    input:
+        acrs = expand(os.path.join(data_dir, 'acr', '{subtype}', 'map.consensus.{tree}.{dating}.html'), dating=dating, tree=trees, subtype=subtypes),
+        acr_B_RT_T215 = expand(os.path.join(data_dir, 'acr', 'B', 'map.{drm}.{tree}.{dating}.html'), dating=dating, tree=trees, drm=['RT_T215DFSY'])
+
+
+rule pastml_RT_V179DE:
+   '''
+   The special case of a nonpolymorphic (E) and a polymorphic (D) mix.
+   We reconstruct the ACR for RT_V179DE on the subtrees cut by E-provoking ARV,
+   then fix the D states (marking the rest as sensitive) and reconstruct RT_V179D on the full tree,
+   finally, we combine the two reconstruction results.
+   '''
+   input:
+       tree = os.path.join(data_dir, 'timetrees', '{subtype}', '{tree}.nwk'),
+       arv_data = os.path.join(data_dir, 'metadata', 'arv_metadata.tab'),
+       polymorphic_data = os.path.join(data_dir, 'metadata', 'drm_types.tab'),
+       data = os.path.join(data_dir, 'metadata', '{subtype}', 'metadata.drm.by_position.tab'),
+   output:
+       data = os.path.join(data_dir, 'acr', '{subtype}', 'pastml', 'RT_V179DE.{tree}', 'combined_ancestral_states.tab'),
+   threads: 2
+   params:
+       mem = 500,
+       name='pastml_{subtype}.RT_V179DE.{tree}_acr',
+       qos = 'fast',
+       wd = os.path.join(data_dir, 'acr', '{subtype}', 'pastml', 'RT_V179DE.{tree}'),
+   singularity: "docker://evolbioinfo/pastml:v1.9.40"
+   shell:
+       """
+       i=`awk -v RS='\t' '/RT_V179DE/{{print NR; exit}}' {input.data}`
+
+       forest="{input.tree}.forest_RT_V179E.nwk"
+       python3 {folder}/py/cut_by_date.py --input_tree {input.tree} --arv_tab {input.arv_data} \
+       --output_forest $forest --drm RT_V179E --poly {input.polymorphic_data}
+
+       cut -f1,$i {input.data} > {input.data}.RT_V179DE
+       echo "sensitive	RT_V179D" >> {input.data}.RT_V179DE
+       pastml --tree $forest --data {input.data}.RT_V179DE -v --work_dir "{params.wd}" --columns RT_V179DE \
+       --prediction_method {ACR_method}
+       rm -rf {input.data}.RT_V179DE
+       rm -rf $forest
+       mv "{params.wd}/combined_ancestral_states.tab" "{params.wd}/combined_ancestral_states.forest.tab"
+
+       sed 's/RT_V179E/sensitive/g' {params.wd}/combined_ancestral_states.forest.tab | sed 's/RT_V179DE/RT_V179D/g' \
+       > {params.wd}/combined_ancestral_states.forest.tab.RT_V179D
+       pastml --tree {input.tree} --data {params.wd}/combined_ancestral_states.forest.tab.RT_V179D -v \
+       --work_dir "{params.wd}" --columns RT_V179D --prediction_method {ACR_method}
+       rm -rf {params.wd}/combined_ancestral_states.forest.tab.RT_V179D
+       cp "{params.wd}/combined_ancestral_states.tab" "{params.wd}/combined_ancestral_states.RT_V179D.tab"
+
+       python3 {folder}/py/replace_table_values.py --input_data "{params.wd}/combined_ancestral_states.tab" \
+       --replacement_data "{params.wd}/combined_ancestral_states.forest.tab"
+
+       python3 {folder}/py/replace_table_values.py --input_data "{params.wd}/marginal_probabilities.character_RT_V179D.model_F81.tab" \
+       --replacement_data "{params.wd}/marginal_probabilities.character_RT_V179DE.model_F81.tab"
+
+       mv "{params.wd}/marginal_probabilities.character_RT_V179D.model_F81.tab" \
+       "{params.wd}/marginal_probabilities.character_RT_V179DE.model_F81.tab"
+       """
+
+rule pastml_drm:
+   '''
+   Cuts a tree based on date of the first drug than could inflict the DRM of interest.
+   Then reconstructs ancestral states on the forest and combines them with all-sensitive reconstruction for the root subtree.
+   '''
+   input:
+       tree = os.path.join(data_dir, 'timetrees', '{subtype}', '{tree}.nwk'),
+       polymorphic_data = os.path.join(data_dir, 'metadata', 'drm_types.tab'),
+       arv_data = os.path.join(data_dir, 'metadata', 'arv_metadata.tab'),
+       data = os.path.join(data_dir, 'metadata', '{subtype}', 'metadata.drm.by_position.tab'),
+   output:
+       data = os.path.join(data_dir, 'acr', '{subtype}', 'pastml', \
+           '{drm,(RT|PR)_[A-Z][0-9]+[A-Z]+}.{tree}', 'combined_ancestral_states.tab'),
+   threads: 2
+   params:
+       mem = 500,
+       name='pastml_{subtype}.{drm}.{tree}_acr',
+       qos = 'fast',
+       wd = os.path.join(data_dir, 'acr', '{subtype}', 'pastml', '{drm}.{tree}'),
+   singularity: "docker://evolbioinfo/pastml:v1.9.40"
+   shell:
+       """
+       forest="{input.tree}.forest_{wildcards.drm}.nwk"
+
+       python3 {folder}/py/cut_by_date.py --input_tree {input.tree} --arv_tab {input.arv_data} \
+       --output_forest $forest --drm {wildcards.drm} --poly {input.polymorphic_data}
+
+       pastml --tree $forest --data {input.data} -v --work_dir "{params.wd}" --columns "{wildcards.drm}" \
+       --prediction_method {ACR_method}
+
+       mv "{params.wd}/combined_ancestral_states.tab" "{params.wd}/combined_ancestral_states.forest.tab"
+
+       rm $forest
+
+       python3 {folder}/py/drm_metadata.py --input_tree {input.tree} --poly {input.polymorphic_data} \
+       --input_tab "{params.wd}/combined_ancestral_states.forest.tab" \
+       --output_tab {output.data} --arv_tab {input.arv_data} --drm {wildcards.drm}
+       """
+
+rule combine_acr_drms_B:
+    '''Combine all state predictions into one table'''
+    input:
+        tree = os.path.join(data_dir, 'timetrees', 'B', '{tree}.{dating}.nwk'),
+        data = expand(os.path.join(data_dir, 'acr', 'B', 'pastml', '{col}.{{tree}}.{{dating}}', 'combined_ancestral_states.tab'),
+        col=DRMs_B),
+    output:
+        data = os.path.join(data_dir, 'acr', 'B', 'pastml', 'all.{tree}.{dating}', 'combined_ancestral_states.tab'),
+    threads: 1
+    params:
+        mem = 4000,
+        name='combine_acrs.B.{tree}.{dating}',
+        qos = 'fast'
+    singularity: "docker://evolbioinfo/pastml:v1.9.40"
+    shell:
+        """
+        python3 {folder}/py/merge_tables.py --input_tabs {input.data} \
+        --output_tab {output.data} --tree {input.tree}
+        """
+
+
+rule combine_acr_drms_C:
+    '''Combine all state predictions into one table'''
+    input:
+        tree = os.path.join(data_dir, 'timetrees', 'C', '{tree}.{dating}.nwk'),
+        data = expand(os.path.join(data_dir, 'acr', 'C', 'pastml', '{col}.{{tree}}.{{dating}}', 'combined_ancestral_states.tab'),
+        col=DRMs_C),
+    output:
+        data = os.path.join(data_dir, 'acr', 'C', 'pastml', 'all.{tree}.{dating}', 'combined_ancestral_states.tab'),
+    threads: 1
+    params:
+        mem = 4000,
+        name='combine_acrs.C.{tree}.{dating}',
+        qos = 'fast'
+    singularity: "docker://evolbioinfo/pastml:v1.9.40"
+    shell:
+        """
+        python3 {folder}/py/merge_tables.py --input_tabs {input.data} \
+        --output_tab {output.data} --tree {input.tree}
+        """
+
+
+rule colours:
+    '''
+    Generate colours for DRM visualization.
+    '''
+    input:
+        data = expand(os.path.join(data_dir, 'acr', '{subtype}', 'pastml', 'all.{{tree}}.{{dating}}', \
+            'combined_ancestral_states.tab'), subtype=subtypes)
+    output:
+        colours = os.path.join(data_dir, 'metadata', 'colours_{tree}.{dating}.tab')
+    threads: 2
+    singularity: "docker://evolbioinfo/pastml:v1.9.40"
+    params:
+        mem = 4000,
+        name = 'colours',
+        qos = 'fast'
+    shell:
+        """
+        python3 {folder}/py/colours.py --input {input} --output {output}
+        """
+
+rule pastml_vis:
+    '''
+    Visualisation with PastML.
+    '''
+    input:
+        tree = os.path.join(data_dir, 'timetrees', '{subtype}', '{tree}.{dating}.nwk'),
+        data = os.path.join(data_dir, 'acr', '{subtype}', 'pastml', 'all.{tree}.{dating}', 'combined_ancestral_states.tab'),
+        colours = os.path.join(data_dir, 'metadata', 'colours_{tree}.{dating}.tab')
+    output:
+        map = os.path.join(data_dir, 'acr', '{subtype}', 'map.{col}.{tree}.{dating,tt|lsd2}.html'),
+        colours = os.path.join(data_dir, 'acr', '{subtype}', 'pastml', 'all.{tree}.{dating}', 'colours', 'colours.character_{col}.tab')
+    threads: 2
+    singularity: "docker://evolbioinfo/pastml:v1.9.40"
+    params:
+        mem = 4000,
+        name = 'pastml_{subtype}.{col}.{tree}.{dating}_vis',
+        wd = os.path.join(data_dir, 'acr', '{subtype}', 'pastml', '{col}.{tree}.{dating}.vis'),
+        qos = 'fast'
+    shell:
+        """
+        pastml --tree {input.tree} --data {input.data} -v --work_dir "{params.wd}" --html_compressed "{output.map}" \
+        --prediction_method COPY --tip_size_threshold 50 -c {wildcards.col} --colours {input.colours}
+
+        mv {params.wd}/colours.character_{wildcards.col}.tab {output.colours}
+
+        rm -rf "{params.wd}"
+        """

@@ -1,0 +1,167 @@
+import os
+
+# To run locally:
+# snakemake --snakefile Snakefile_data_stats --keep-going --cores 4 --use-singularity --singularity-prefix ~/.singularity --singularity-args "--home ~"
+
+# To visualise the pipeline:
+# module load graphviz
+# snakemake --snakefile Snakefile_data_stats --dag | dot -Tsvg > pipeline_data_stats.svg
+
+localrules: all, arv_metadata
+
+folder = os.path.abspath(config.get("folder", '..'))
+data_dir = os.path.join(folder, 'data')
+
+subtypes = ['B', 'C']
+
+
+rule all:
+    input:
+        common_drms_by_pos = expand(os.path.join(data_dir, 'metadata', '{subtype}', 'common_drms.by_position.txt'), subtype=subtypes),
+        common_drms = expand(os.path.join(data_dir, 'metadata', '{subtype}', 'common_drms.txt'), subtype=subtypes),
+        drm_metadata = expand(os.path.join(data_dir, 'metadata', '{subtype}', 'metadata.drm.by_position.tab'), subtype=subtypes),
+        tab1 = os.path.join(data_dir, 'metadata', 'Table1.tab'),
+        tab2 = os.path.join(data_dir, 'metadata', 'TableA1.tab'),
+        data = os.path.join(data_dir, 'metadata', 'arv_metadata.tab'),
+        poly = os.path.join(data_dir, 'metadata', 'drm_types.tab'),
+
+rule prevalence:
+    '''
+    Calculates SDRM prevalence.
+    '''
+    input:
+        tab = os.path.join(data_dir, 'metadata', '{subtype}', 'metadata.drm.tab'),
+        tree = os.path.join(data_dir, 'timetrees', '{subtype}', 'raxml.lsd2.nwk'),
+    output:
+        tab = os.path.join(data_dir, 'metadata', '{subtype}', 'drm_prevalence.tab'),
+    threads: 1
+    params:
+        mem = 1000,
+        name = 'prev',
+        qos = 'fast'
+    singularity: "docker://evolbioinfo/pastml:v1.9.40"
+    shell: "python3 {folder}/py/prevalence.py --input {input.tab} --output {output.tab} --tree {input.tree}"
+
+
+rule common_SDRMs:
+    '''
+    Selects SDRMs that appear in more than X% of sequences.
+    '''
+    input:
+        tab = os.path.join(data_dir, 'metadata', '{subtype}', 'drm_prevalence.tab'),
+    output:
+        tab = os.path.join(data_dir, 'metadata', '{subtype}', 'common_drms.txt'),
+    threads: 1
+    params:
+        mem = 1000,
+        name = 'prev',
+        qos = 'fast'
+    singularity: "docker://evolbioinfo/pastml:v1.9.40"
+    shell: "python3 {folder}/py/common_DRMs.py --input {input.tab} --output {output.tab} --threshold 0.5"
+
+
+rule arv_metadata:
+    '''
+    Extracts DRM drug metadata.
+    '''
+    input:
+        tab = expand(os.path.join(data_dir, 'metadata', '{subtype}', 'common_drms.txt'), subtype=subtypes)
+    output:
+        data = os.path.join(data_dir, 'metadata', 'arv_metadata.tab'),
+    threads: 1
+    params:
+        mem = 500,
+        name='arv_metadata',
+        qos = 'fast',
+    singularity: "docker://evolbioinfo/python-evol:v3.8.2drm"
+    shell:
+        """
+        python3 {folder}/py/drm2arv.py --drm {input.tab} --output {output.data}
+        """
+
+rule reformat_drm_table:
+    '''
+    Reformats the DRM table by position.
+    '''
+    input:
+        tab = os.path.join(data_dir, 'metadata', '{subtype}', 'metadata.drm.tab'),
+        cd = os.path.join(data_dir, 'metadata', '{subtype}', 'common_drms.txt'),
+    output:
+        tab = os.path.join(data_dir, 'metadata', '{subtype}', 'metadata.drm.by_position.tab'),
+        cd = os.path.join(data_dir, 'metadata', '{subtype}', 'common_drms.by_position.txt'),
+    threads: 1
+    params:
+        mem = 500,
+        name='reformat_drms',
+        qos = 'fast',
+    singularity: "docker://evolbioinfo/python-evol:v3.8.2drm"
+    shell:
+        """
+        python3 {folder}/py/reformat_drm_table.py --input_common_drms {input.cd} --input_data {input.tab} \
+         --output_common_drms {output.cd} --output_data {output.tab}
+        """
+
+
+rule extract_polymorphic_info:
+    '''
+    Extracts info on DRM polymorphicity.
+    '''
+    output:
+        poly = os.path.join(data_dir, 'metadata', 'drm_types.tab'),
+    threads: 1
+    params:
+        mem = 500,
+        name='poly',
+        qos = 'fast',
+    singularity: "docker://evolbioinfo/python-evol:v3.8.2drm"
+    shell:
+        """
+        python3 {folder}/py/polymorphic_or_not.py --tab {output.poly}
+        """
+
+rule Table1:
+    '''
+    Extract Table 1 data.
+    '''
+    input:
+        tab = os.path.join(data_dir, 'metadata', 'metadata.uk.tab'),
+        tab_drm = expand(os.path.join(data_dir, 'metadata', '{subtype}', 'metadata.drm.tab'), subtype=subtypes),
+        tree = expand(os.path.join(data_dir, 'trees', '{subtype}', 'rooted_raxml.nwk'), subtype=subtypes),
+        timetree = expand(os.path.join(data_dir, 'timetrees', '{subtype}', 'raxml.lsd2.nwk'), subtype=subtypes),
+        poly = os.path.join(data_dir, 'metadata', 'drm_types.tab'),
+    output:
+        tab = os.path.join(data_dir, 'metadata', 'Table1.tab'),
+    threads: 1
+    params:
+        mem = 1000,
+        name = 'Table1',
+        qos = 'fast'
+    singularity: "docker://evolbioinfo/pastml:v1.9.40"
+    shell:
+        """
+        python3 {folder}/py/table1.py --metadata_drm {input.tab_drm} --metadata {input.tab} --output {output.tab} \
+        --tree {input.tree} --timetree {input.timetree} --subtype {subtypes} --poly {input.poly}
+        """
+
+
+rule TableA1:
+    '''
+    Extract Table A1 data.
+    '''
+    input:
+        tab = expand(os.path.join(data_dir, 'metadata', '{subtype}', 'metadata.drm.tab'), subtype=subtypes),
+        tree = expand(os.path.join(data_dir, 'timetrees', '{subtype}', 'raxml.lsd2.nwk'), subtype=subtypes),
+        poly = os.path.join(data_dir, 'metadata', 'drm_types.tab'),
+    output:
+        tab = os.path.join(data_dir, 'metadata', 'TableA1.tab'),
+    threads: 1
+    params:
+        mem = 1000,
+        name = 'Table2',
+        qos = 'fast'
+    singularity: "docker://evolbioinfo/pastml:v1.9.40"
+    shell:
+        """
+        python3 {folder}/py/tableA1.py --metadata {input.tab} --output {output.tab} --tree {input.tree} \
+        --subtype {subtypes} --poly {input.poly}
+        """
