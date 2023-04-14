@@ -1,0 +1,14 @@
+parameter	value
+pastml_version	1.9.34
+character	RT_K65R
+log_likelihood	-1403.8296505460376
+log_likelihood_restricted_MAP	-1435.5936237137341
+method	MAP
+model	F81
+num_nodes	37071
+num_tips	18809
+scaling_factor	0.005204886569602383
+smoothing_factor	0
+state_changes_per_avg_branch	0.06329398425146808
+RT_K65R	0.008085157338538538
+sensitive	0.9919148426614615

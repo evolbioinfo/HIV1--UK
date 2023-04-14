@@ -24,7 +24,7 @@ DRMs_B = open(os.path.join(data_dir, 'metadata', 'B', 'common_drms.by_position.t
 
 rule all:
     input:
-        stats = expand(os.path.join(data_dir, 'metadata', '{subtype}', '{tree}.{dating}_drm_stats.tab'), dating=dating, tree=trees, subtype=subtypes),
+        stats = expand(os.path.join(data_dir, 'metadata', '{subtype}', '{tree}.{dating}_drm_stats.tex'), dating=dating, tree=trees, subtype=subtypes),
         supmat = os.path.join(data_dir, 'metadata', 'Supp_DRM_Tables.tex'),
         stats_losses = os.path.join(data_dir, 'metadata', 'Table4.tab'),
 
@@ -40,7 +40,7 @@ rule stats:
         polymorphic_data = os.path.join(data_dir, 'metadata', 'drm_types.tab'),
         arv_data = os.path.join(data_dir, 'metadata', 'arv_metadata.tab'),
     output:
-        metadata = os.path.join(data_dir, 'metadata', '{subtype}', '{tree}_drm_stats.tab')
+        metadata = os.path.join(data_dir, 'metadata', '{subtype}', '{tree}_drm_stats.tex')
     threads: 2
     singularity: "docker://evolbioinfo/pastml:v1.9.40"
     params:
@@ -86,7 +86,7 @@ rule aggregate_stats_drm:
     '''
     input:
         metadata_B = expand(os.path.join(data_dir, 'metadata', 'B', 'raxml.lsd2_drm_stats_{drm}.tex'), drm=DRMs_B),
-        metadata_C = expand(os.path.join(data_dir, 'metadata', 'B', 'raxml.lsd2_drm_stats_{drm}.tex'), drm=DRMs_C),
+        metadata_C = expand(os.path.join(data_dir, 'metadata', 'C', 'raxml.lsd2_drm_stats_{drm}.tex'), drm=DRMs_C),
     output:
         tex = os.path.join(data_dir, 'metadata', 'Supp_DRM_Tables.tex')
     threads: 2
@@ -118,7 +118,7 @@ rule stats_loss:
     output:
         metadata = os.path.join(data_dir, 'metadata', '{subtype}', '{tree}_drm_stats_losses.tab')
     threads: 2
-    singularity: "docker://evolbioinfo/pastml:v1.9.40"
+    singularity: "docker://evolbioinfo/python-evol:v3.8.2drm"
     params:
         mem = 4000,
         name = 'stats_loss',

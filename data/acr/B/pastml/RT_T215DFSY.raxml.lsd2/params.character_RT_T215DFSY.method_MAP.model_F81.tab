@@ -1,0 +1,17 @@
+parameter	value
+pastml_version	1.9.34
+character	RT_T215DFSY
+log_likelihood	-7982.972329917962
+log_likelihood_restricted_MAP	-8114.907853564978
+method	MAP
+model	F81
+num_nodes	73139
+num_tips	39159
+scaling_factor	0.007684450434209482
+smoothing_factor	0
+state_changes_per_avg_branch	0.0457995576306207
+RT_T215D	0.005051778992977969
+RT_T215F	0.008430060443005899
+RT_T215S	0.004771213248741338
+RT_T215Y	0.028420020798730378
+sensitive	0.9533269265165444

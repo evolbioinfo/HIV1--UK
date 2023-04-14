@@ -276,13 +276,17 @@ with the following columns:
   * subtype_jpHMM -- sequence subtype;
 * PastML tables containing marginal probabilities of ACR for different common DRMs:
 data/acr/<subtype>/pastml/<DRM_position>.raxml.lsd2/marginal_probabilities.character_<DRM_position>.model_F81.tab
+* ACR visualizations for common B and C DRMs:
+[data/acr/B/map.consensus.raxml.lsd2.html](data/acr/B/map.consensus.raxml.lsd2.html) and [data/acr/C/map.consensus.raxml.lsd2.html](data/acr/C/map.consensus.raxml.lsd2.html)
+* ACR visualizations for RT:T215DFSY in B:
+[data/acr/B/map.RT_T215DFSY.raxml.lsd2.html](data/acr/B/map.RT_T215DFSY.raxml.lsd2.html);
 * tab-delimited table with DRM loss statistics from [[Castro _et al._ 2013]](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3789571/):
 [data/input/Castro.tab](data/input/Castro.tab).
 
 ##### Output data:
-* Tables 2 and 3 of the article: [data/metadata/B/raxml.lsd2_drm_stats.tab](data/metadata/B/raxml.lsd2_drm_stats.tab) 
-and [data/metadata/C/raxml.lsd2_drm_stats.tab](data/metadata/C/raxml.lsd2_drm_stats.tab);
-* Tables 4 of the article: [data/metadata/Table4.tab](data/metadata/Table4.tab) 
+* Tables 2 and 3 of the article (in .tex format): [data/metadata/B/raxml.lsd2_drm_stats.tex](data/metadata/B/raxml.lsd2_drm_stats.tex) 
+and [data/metadata/C/raxml.lsd2_drm_stats.tex](data/metadata/C/raxml.lsd2_drm_stats.tex);
+* Table 4 of the article: [data/metadata/Table4.tab](data/metadata/Table4.tab) 
 * Supp Mat Tables on DRM TDR/ADR/loss count statistics over time (in .tex format): 
 [data/metadata/Supp_DRM_Tables.tex](data/metadata/Supp_DRM_Tables.tex)
   

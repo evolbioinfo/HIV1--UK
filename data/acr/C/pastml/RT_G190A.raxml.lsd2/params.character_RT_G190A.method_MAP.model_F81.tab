@@ -1,0 +1,14 @@
+parameter	value
+pastml_version	1.9.34
+character	RT_G190A
+log_likelihood	-1582.648520819276
+log_likelihood_restricted_MAP	-1604.4009610465062
+method	MAP
+model	F81
+num_nodes	37119
+num_tips	18809
+scaling_factor	0.006195593962786897
+smoothing_factor	0
+state_changes_per_avg_branch	0.05199967243124898
+RT_G190A	0.008770447149611426
+sensitive	0.9912295528503886

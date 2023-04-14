@@ -1,0 +1,14 @@
+parameter	value
+pastml_version	1.9.34
+character	RT_K101E
+log_likelihood	-1602.090377866501
+log_likelihood_restricted_MAP	-1631.1028019137343
+method	MAP
+model	F81
+num_nodes	73408
+num_tips	39159
+scaling_factor	0.002971213535029305
+smoothing_factor	0
+state_changes_per_avg_branch	0.01355243432349962
+RT_K101E	0.005576215702726788
+sensitive	0.9944237842972732

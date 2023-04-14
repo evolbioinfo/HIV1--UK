@@ -1,0 +1,14 @@
+parameter	value
+pastml_version	1.9.34
+character	RT_L210W
+log_likelihood	-3333.050387077563
+log_likelihood_restricted_MAP	-3376.1307946516267
+method	MAP
+model	F81
+num_nodes	73139
+num_tips	39159
+scaling_factor	0.004255866593814725
+smoothing_factor	0
+state_changes_per_avg_branch	0.02536509396481031
+RT_L210W	0.018859653978696687
+sensitive	0.9811403460213034

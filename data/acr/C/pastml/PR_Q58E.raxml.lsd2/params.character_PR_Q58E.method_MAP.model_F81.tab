@@ -1,0 +1,14 @@
+parameter	value
+pastml_version	1.9.34
+character	PR_Q58E
+log_likelihood	-681.7045597212577
+log_likelihood_restricted_MAP	-692.9877251876388
+method	MAP
+model	F81
+num_nodes	35452
+num_tips	18809
+scaling_factor	0.0005660369773949617
+smoothing_factor	0
+state_changes_per_avg_branch	0.007375744546779491
+PR_Q58E	0.016353068164067702
+sensitive	0.9836469318359323

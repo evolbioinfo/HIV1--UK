@@ -1,0 +1,14 @@
+parameter	value
+pastml_version	1.9.34
+character	PR_L90M
+log_likelihood	-670.1399679747353
+log_likelihood_restricted_MAP	-676.1546129387752
+method	MAP
+model	F81
+num_nodes	37114
+num_tips	18809
+scaling_factor	0.0016696228098415004
+smoothing_factor	0
+state_changes_per_avg_branch	0.014815030510186332
+PR_L90M	0.003157954021002172
+sensitive	0.9968420459789978

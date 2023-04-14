@@ -1,0 +1,14 @@
+parameter	value
+pastml_version	1.9.34
+character	RT_V179D
+log_likelihood	-1285.2870045169605
+log_likelihood_restricted_MAP	-1310.405272675703
+method	MAP
+model	F81
+num_nodes	35452
+num_tips	18809
+scaling_factor	0.001541130761434549
+smoothing_factor	0
+state_changes_per_avg_branch	0.02008170360501642
+RT_V179D	0.01784358246418867
+sensitive	0.9821564175358114

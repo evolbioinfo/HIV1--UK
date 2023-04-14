@@ -1,0 +1,14 @@
+parameter	value
+pastml_version	1.9.34
+character	PR_M46I
+log_likelihood	-2123.796238648825
+log_likelihood_restricted_MAP	-2154.9874098779073
+method	MAP
+model	F81
+num_nodes	73361
+num_tips	39159
+scaling_factor	0.003635930046300295
+smoothing_factor	0
+state_changes_per_avg_branch	0.017268819399422163
+PR_M46I	0.007908617412618116
+sensitive	0.9920913825873819

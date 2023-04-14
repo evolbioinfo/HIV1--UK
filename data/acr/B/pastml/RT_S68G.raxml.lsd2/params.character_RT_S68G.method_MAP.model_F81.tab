@@ -1,0 +1,14 @@
+parameter	value
+pastml_version	1.9.34
+character	RT_S68G
+log_likelihood	-4207.476781382962
+log_likelihood_restricted_MAP	-4238.772463603964
+method	MAP
+model	F81
+num_nodes	71858
+num_tips	39159
+scaling_factor	0.0025772428275929174
+smoothing_factor	0
+state_changes_per_avg_branch	0.017536644971532876
+RT_S68G	0.29276234866342454
+sensitive	0.7072376513365755

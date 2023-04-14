@@ -1,0 +1,14 @@
+parameter	value
+pastml_version	1.9.34
+character	RT_H221Y
+log_likelihood	-2117.462207544568
+log_likelihood_restricted_MAP	-2134.3301141447305
+method	MAP
+model	F81
+num_nodes	73408
+num_tips	39159
+scaling_factor	0.002343638411632111
+smoothing_factor	0
+state_changes_per_avg_branch	0.01068991012500954
+RT_H221Y	0.009122931032876804
+sensitive	0.9908770689671231

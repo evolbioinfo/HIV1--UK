@@ -1,0 +1,14 @@
+parameter	value
+pastml_version	1.9.34
+character	RT_D67N
+log_likelihood	-1555.4533531728785
+log_likelihood_restricted_MAP	-1582.0046263870217
+method	MAP
+model	F81
+num_nodes	37071
+num_tips	18809
+scaling_factor	0.0038018060943840236
+smoothing_factor	0
+state_changes_per_avg_branch	0.04623183461296071
+RT_D67N	0.009428503939192532
+sensitive	0.9905714960608074
