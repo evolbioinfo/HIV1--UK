@@ -5,8 +5,8 @@ The analyses are described in the article below:
 
 ### Article
 Zhukova A., Dunn D., Tostevin A., Gascuel O., on behalf of the UK HIV Drug Resistance
-Database & the Collaborative HIV, Anti-HIV Drug Resistance Network. __Modelling drug resistance emergence and transmission in HIV-1
-in the UK__ [2023]()
+Database & the Collaborative HIV, Anti-HIV Drug Resistance Network __"Modelling drug resistance emergence and transmission in HIV-1
+in the UK"__ _Viruses_ 2023, 15(6), 1244 [doi:10.3390/v15061244](https://doi.org/10.3390/v15061244)
 
 ### Input data
 We used the data from the UK HIV Drug Resistance Database [[Dunn and Pillay 2007](https://pubmed.ncbi.nlm.nih.gov/18578092/)]:
