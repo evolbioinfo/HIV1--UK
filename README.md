@@ -19,7 +19,7 @@ or unknown; and the date of the test). Such data can be requested from the Datab
 The Snakemake [[Köster *et al.*, 2012](https://doi.org/10.1093/bioinformatics/bts480)] pipepiles for data analyses can be found in the [snakemake](folder).
 
 They include:
-#### 1. Subtyping pipeline [Snakemake_subtype](snakemake/Snakemake_subtype)
+#### 1. Subtyping pipeline [Snakefile_subtype](snakemake/Snakefile_subtype)
 
 This pipeline first reads and reformats the input data provided 
 by the UK HIV Drug Resistance database (sequences and metadata). 
@@ -61,7 +61,7 @@ snakemake --snakefile Snakefile_subtype --keep-going --cores 4 --use-singularity
 ```
 ![MSA pipeline](snakemake/pipeline_subtype.svg)
 
-#### 2. B and C dataset preparation pipeline [Snakemake_aln](snakemake/Snakemake_aln)
+#### 2. B and C dataset preparation pipeline [Snakefile_aln](snakemake/Snakefile_aln)
 
 This pipeline extracts alignments corresponding to subtypes B and C 
 (adding 5 sequences of other pure subtypes as outgroups), 
@@ -100,7 +100,7 @@ snakemake --snakefile Snakefile_aln --keep-going --cores 4 --use-singularity --s
 ![MSA pipeline](snakemake/pipeline_aln.svg)
 
 
-### 3. Time-scaled tree (for B and C) reconstruction pipeline [Snakemake_trees](snakemake/Snakemake_trees)
+### 3. Time-scaled tree (for B and C) reconstruction pipeline [Snakefile_trees](snakemake/Snakefile_trees)
 
 The pipeline reconstructs phylogenetic trees for B and C with RAxML-NG [[Stamatakis, 2014](https://doi.org/10.1093/bioinformatics/btu033)] (model: GTR+G4+FO+IO),
 roots it with an outgroup (which is removed after rooting) and dated with LSD2 [[To *et al.*, 2015](https://academic.oup.com/sysbio/article/65/1/82/2461506)] (with outlier removal). 
@@ -138,7 +138,7 @@ snakemake --snakefile Snakefile_trees --keep-going --cores 4 --use-singularity -
 
 
 
-### 4. Data set statistics pipeline [Snakemake_data_stats](snakemake/Snakemake_data_stats)
+### 4. Data set statistics pipeline [Snakefile_data_stats](snakemake/Snakefile_data_stats)
 
 The pipeline calculated various statistics for B and C datasets (Tables 1 and A1 of the article),
 as well as lists of DRMs with prevalence > 0.5% in B and C (only teh first sequence is considered for each patient),
@@ -195,7 +195,7 @@ snakemake --snakefile Snakefile_data_stats --keep-going --cores 4 --use-singular
 ![MSA pipeline](snakemake/pipeline_data_stats.svg)
 
 
-### 5. DRM pipeline [Snakemake_drm](snakemake/Snakemake_drm)
+### 5. DRM pipeline [Snakefile_drm](snakemake/Snakefile_drm)
 
 The pipeline reconstructs and visualizes ancestral characters for common DRMs with PastML [[Ishikawa, Zhukova _et al._ 2019](https://doi.org/10.1093/molbev/msz131)]. 
 
@@ -240,7 +240,7 @@ snakemake --snakefile Snakefile_drm --keep-going --cores 4 --use-singularity --s
 
 
 
-### 6. DRM statistics pipeline [Snakemake_drm_stats](snakemake/Snakemake_drm_stats)
+### 6. DRM statistics pipeline [Snakefile_drm_stats](snakemake/Snakefile_drm_stats)
 
 The pipeline calculates various statistics for common DRMs.
 
