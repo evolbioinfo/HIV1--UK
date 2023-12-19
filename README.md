@@ -39,8 +39,8 @@ We do not provide the above two files. They should be requested from the UK HIV 
 
 * the reference _pol_ alignment: provided in [data/input/HIV1_REF_2010_pol_DNA.fa.xz](data/input/HIV1_REF_2010_pol_DNA.fa.xz).
 
-The pipeline subtypes and aligns the sequences with jpHMM [[Schultz _et al._ 2006]](https://doi.org/10.1
-186/1471-2105-7-265) against the reference POL alignment from the Los Alamos HIV database [[Kuiken _et al._ 2003](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2613779/)] 
+The pipeline subtypes and aligns the sequences with jpHMM [[Schultz _et al._ 2006](https://doi.org/10.1
+186/1471-2105-7-265)] against the reference POL alignment from the Los Alamos HIV database [[Kuiken _et al._ 2003](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2613779/)] 
 (provided in [HIV1_REF_2010_pol_DNA.fa.xz](data/input/HIV1_REF_2010_pol_DNA.fa.xz)).
 
 ##### Output data:
